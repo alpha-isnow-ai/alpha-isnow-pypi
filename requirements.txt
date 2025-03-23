@@ -1,0 +1,5 @@
+# Development requirements for alpha-datasets
+pandas
+s3fs
+boto3
+pytest
