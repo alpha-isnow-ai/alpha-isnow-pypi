@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 setup(
-    name="alpha-datasets",
+    name="alpha-isnow",
     version="0.1.0",
-    author="Your Name",
-    description="A library to load daily asset data from Cloudflare R2 and merge into a DataFrame.",
-    packages=find_packages(),
+    author="Wan, Guolin <wanguolin@gmail.com>",
+    description="A library to for https://alpha.isnow.ai",
+    packages=find_namespace_packages(include=["alpha.*"]),
     install_requires=[
         "pandas",  # For DataFrame handling
         "s3fs",  # For accessing Cloudflare R2 via S3 interface

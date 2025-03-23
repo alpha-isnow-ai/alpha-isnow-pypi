@@ -6,6 +6,8 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
+_BUCKET_NAME = "alpha"
+
 
 def get_r2_filesystem(token: dict | None = None) -> s3fs.S3FileSystem:
     """
@@ -39,16 +41,14 @@ def get_r2_filesystem(token: dict | None = None) -> s3fs.S3FileSystem:
     return fs
 
 
-def list_parquet_files(
-    bucket_name: str, repo_name: str, token: dict | None = None
-) -> Dict[str, str]:
+def list_parquet_files(repo_name: str, token: dict | None = None) -> Dict[str, str]:
     """
     List all files in the R2 bucket under the path ds/<repo_name>/ that match the format "YYYY.MM.parquet".
 
     Returns a dictionary where the key is the month string (YYYY.MM) and the value is the full file path.
     """
     fs = get_r2_filesystem(token)
-    base_path = f"{bucket_name}/ds/{repo_name}/"
+    base_path = f"{_BUCKET_NAME}/ds/{repo_name}/"
     logger.debug(f"Listing files under path {base_path}")
     try:
         files = fs.ls(base_path)
@@ -67,13 +67,13 @@ def list_parquet_files(
 
 
 def load_parquet_file(
-    bucket_name: str, repo_name: str, month: str, token: dict | None = None
+    repo_name: str, month: str, token: dict | None = None
 ) -> pd.DataFrame:
     """
     Load the parquet file for a specified month.
     """
     fs = get_r2_filesystem(token)
-    file_path = f"s3://{bucket_name}/ds/{repo_name}/{month}.parquet"
+    file_path = f"s3://{_BUCKET_NAME}/ds/{repo_name}/{month}.parquet"
     logger.debug(f"Loading file {file_path}")
     df = pd.read_parquet(file_path, filesystem=fs)
     return df

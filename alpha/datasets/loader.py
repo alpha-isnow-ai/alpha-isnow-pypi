@@ -8,6 +8,7 @@ from .storage import list_parquet_files, load_parquet_file
 
 # Set up logger
 logger = logging.getLogger(__name__)
+
 if not logger.handlers:
     handler = logging.StreamHandler()
     formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
@@ -38,7 +39,7 @@ def _validate_contiguity(months: list[str]):
         expected = current.replace(year=year, month=month)
         if dt.year != expected.year or dt.month != expected.month:
             raise ValueError(
-                f"Missing month: expected {expected.strftime('%Y.%m')} after {_parse_month(current.strftime('%Y.%m')).strftime('%Y.%m')}, "
+                f"Missing month: expected {expected.strftime('%Y.%m')} after {current.strftime('%Y.%m')}, "
                 f"but got {dt.strftime('%Y.%m')}"
             )
         current = dt
@@ -46,7 +47,6 @@ def _validate_contiguity(months: list[str]):
 
 def load_daily(
     asset_type: AssetType,
-    bucket_name: str = "alpha",
     month_range: tuple[str, str] | None = None,
     threads: int = 4,
     token: dict | None = None,
@@ -72,11 +72,9 @@ def load_daily(
     logger.debug(f"Loading data: repo_id={repo_id}, repo_name={repo_name}")
 
     # List all parquet files under ds/<repo_name>/ on R2
-    file_dict = list_parquet_files(bucket_name, repo_name, token)
+    file_dict = list_parquet_files(repo_name, token)
     if not file_dict:
-        raise ValueError(
-            f"No parquet files found for repo {repo_name} in bucket {bucket_name}."
-        )
+        raise ValueError(f"No parquet files found for repo {repo_name}.")
     available_months = sorted(file_dict.keys())
     logger.debug(f"Available months: {available_months}")
 
@@ -94,13 +92,11 @@ def load_daily(
 
     logger.info(f"Selected months: {selected_months}")
 
-    # Concurrently load each month’s parquet file using a thread pool
+    # Concurrently load each month's parquet file using a thread pool
     dfs = []
     with ThreadPoolExecutor(max_workers=threads) as executor:
         future_to_month = {
-            executor.submit(
-                load_parquet_file, bucket_name, repo_name, month, token
-            ): month
+            executor.submit(load_parquet_file, repo_name, month, token): month
             for month in selected_months
         }
         for future in as_completed(future_to_month):
@@ -120,3 +116,26 @@ def load_daily(
     combined_df = pd.concat(dfs, ignore_index=True)
     logger.info(f"Merged DataFrame record count: {len(combined_df)}")
     return combined_df
+
+
+def list_available_months(
+    asset_type: AssetType,
+    token: dict | None = None,
+) -> list[str]:
+    """
+    List all available month strings (in 'YYYY.MM' format) for the specified asset type.
+
+    Parameters:
+        asset_type: An AssetType enum value (Stocks, ETFs, Indices, or Cryptocurrencies).
+        bucket_name: The R2 bucket name (default is "alpha").
+        token: A dictionary containing R2 credentials with keys: R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
+               If None, environment variables are used.
+
+    Returns:
+        A sorted list of month strings (e.g., ['2023.01', '2023.02']).
+    """
+    repo_id = asset_type.value
+    repo_name = repo_id.split("/")[-1].lower()
+    file_dict = list_parquet_files(repo_name, token)
+    available_months = sorted(file_dict.keys())
+    return available_months
