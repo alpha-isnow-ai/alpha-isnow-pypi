@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2025-03-29
+
+### Added
+- Add symbols parameter to `load_daily` function
+- Support for SP500 symbols in `load_daily` function
+
+## [0.1.2] - 2024-03-29
+
+### Added
+- Detailed parameter documentation for `load_daily` function
+- Support for price adjustment with `adjust` parameter
+- Currency conversion to USD with `to_usd` parameter
+- Bond rate to price conversion with `rate_to_price` parameter
+- Comprehensive documentation in README.md
+
+### Changed
+- Improved code organization and readability
+- Enhanced error messages for better debugging
+- Updated documentation with detailed parameter descriptions
+
+### Fixed
+- Documentation clarity for function parameters
+- Improved parameter validation and error handling
+
 ## [0.1.1] - 2024-03-29
 
 ### Added

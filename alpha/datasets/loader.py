@@ -17,6 +17,513 @@ if not logger.handlers:
 logger.setLevel(logging.ERROR)  # Default log level is ERROR
 
 
+SP500_SYMBOLS = [
+    "MMM",
+    "AOS",
+    "ABT",
+    "ABBV",
+    "ACN",
+    "ADBE",
+    "AMD",
+    "AES",
+    "AFL",
+    "A",
+    "APD",
+    "ABNB",
+    "AKAM",
+    "ALB",
+    "ARE",
+    "ALGN",
+    "ALLE",
+    "LNT",
+    "ALL",
+    "GOOGL",
+    "GOOG",
+    "MO",
+    "AMZN",
+    "AMCR",
+    "AEE",
+    "AEP",
+    "AXP",
+    "AIG",
+    "AMT",
+    "AWK",
+    "AMP",
+    "AME",
+    "AMGN",
+    "APH",
+    "ADI",
+    "ANSS",
+    "AON",
+    "APA",
+    "AAPL",
+    "AMAT",
+    "APTV",
+    "ACGL",
+    "ADM",
+    "ANET",
+    "AJG",
+    "AIZ",
+    "T",
+    "ATO",
+    "ADSK",
+    "ADP",
+    "AZO",
+    "AVB",
+    "AVY",
+    "AXON",
+    "BKR",
+    "BALL",
+    "BAC",
+    "BK",
+    "BBWI",
+    "BAX",
+    "BDX",
+    "BRK-B",
+    "BBY",
+    "TECH",
+    "BIIB",
+    "BLK",
+    "BX",
+    "BA",
+    "BKNG",
+    "BWA",
+    "BSX",
+    "BMY",
+    "AVGO",
+    "BR",
+    "BRO",
+    "BF-B",
+    "BLDR",
+    "BG",
+    "BXP",
+    "CHRW",
+    "CDNS",
+    "CZR",
+    "CPT",
+    "CPB",
+    "COF",
+    "CAH",
+    "KMX",
+    "CCL",
+    "CARR",
+    "CTLT",
+    "CAT",
+    "CBOE",
+    "CBRE",
+    "CDW",
+    "CE",
+    "COR",
+    "CNC",
+    "CNP",
+    "CF",
+    "CRL",
+    "SCHW",
+    "CHTR",
+    "CVX",
+    "CMG",
+    "CB",
+    "CHD",
+    "CI",
+    "CINF",
+    "CTAS",
+    "CSCO",
+    "C",
+    "CFG",
+    "CLX",
+    "CME",
+    "CMS",
+    "KO",
+    "CTSH",
+    "CL",
+    "CMCSA",
+    "CAG",
+    "COP",
+    "ED",
+    "STZ",
+    "CEG",
+    "COO",
+    "CPRT",
+    "GLW",
+    "CPAY",
+    "CTVA",
+    "CSGP",
+    "COST",
+    "CTRA",
+    "CRWD",
+    "CCI",
+    "CSX",
+    "CMI",
+    "CVS",
+    "DHR",
+    "DRI",
+    "DVA",
+    "DAY",
+    "DECK",
+    "DE",
+    "DELL",
+    "DAL",
+    "DVN",
+    "DXCM",
+    "FANG",
+    "DLR",
+    "DFS",
+    "DG",
+    "DLTR",
+    "D",
+    "DPZ",
+    "DOV",
+    "DOW",
+    "DHI",
+    "DTE",
+    "DUK",
+    "DD",
+    "EMN",
+    "ETN",
+    "EBAY",
+    "ECL",
+    "EIX",
+    "EW",
+    "EA",
+    "ELV",
+    "EMR",
+    "ENPH",
+    "ETR",
+    "EOG",
+    "EPAM",
+    "EQT",
+    "EFX",
+    "EQIX",
+    "EQR",
+    "ERIE",
+    "ESS",
+    "EL",
+    "EG",
+    "EVRG",
+    "ES",
+    "EXC",
+    "EXPE",
+    "EXPD",
+    "EXR",
+    "XOM",
+    "FFIV",
+    "FDS",
+    "FICO",
+    "FAST",
+    "FRT",
+    "FDX",
+    "FIS",
+    "FITB",
+    "FSLR",
+    "FE",
+    "FI",
+    "FMC",
+    "F",
+    "FTNT",
+    "FTV",
+    "FOXA",
+    "FOX",
+    "BEN",
+    "FCX",
+    "GRMN",
+    "IT",
+    "GE",
+    "GEHC",
+    "GEV",
+    "GEN",
+    "GNRC",
+    "GD",
+    "GIS",
+    "GM",
+    "GPC",
+    "GILD",
+    "GPN",
+    "GL",
+    "GDDY",
+    "GS",
+    "HAL",
+    "HIG",
+    "HAS",
+    "HCA",
+    "DOC",
+    "HSIC",
+    "HSY",
+    "HES",
+    "HPE",
+    "HLT",
+    "HOLX",
+    "HD",
+    "HON",
+    "HRL",
+    "HST",
+    "HWM",
+    "HPQ",
+    "HUBB",
+    "HUM",
+    "HBAN",
+    "HII",
+    "IBM",
+    "IEX",
+    "IDXX",
+    "ITW",
+    "INCY",
+    "IR",
+    "PODD",
+    "INTC",
+    "ICE",
+    "IFF",
+    "IP",
+    "IPG",
+    "INTU",
+    "ISRG",
+    "IVZ",
+    "INVH",
+    "IQV",
+    "IRM",
+    "JBHT",
+    "JBL",
+    "JKHY",
+    "J",
+    "JNJ",
+    "JCI",
+    "JPM",
+    "JNPR",
+    "K",
+    "KVUE",
+    "KDP",
+    "KEY",
+    "KEYS",
+    "KMB",
+    "KIM",
+    "KMI",
+    "KKR",
+    "KLAC",
+    "KHC",
+    "KR",
+    "LHX",
+    "LH",
+    "LRCX",
+    "LW",
+    "LVS",
+    "LDOS",
+    "LEN",
+    "LLY",
+    "LIN",
+    "LYV",
+    "LKQ",
+    "LMT",
+    "L",
+    "LOW",
+    "LULU",
+    "LYB",
+    "MTB",
+    "MRO",
+    "MPC",
+    "MKTX",
+    "MAR",
+    "MMC",
+    "MLM",
+    "MAS",
+    "MA",
+    "MTCH",
+    "MKC",
+    "MCD",
+    "MCK",
+    "MDT",
+    "MRK",
+    "META",
+    "MET",
+    "MTD",
+    "MGM",
+    "MCHP",
+    "MU",
+    "MSFT",
+    "MAA",
+    "MRNA",
+    "MHK",
+    "MOH",
+    "TAP",
+    "MDLZ",
+    "MPWR",
+    "MNST",
+    "MCO",
+    "MS",
+    "MOS",
+    "MSI",
+    "MSCI",
+    "NDAQ",
+    "NTAP",
+    "NFLX",
+    "NEM",
+    "NWSA",
+    "NWS",
+    "NEE",
+    "NKE",
+    "NI",
+    "NDSN",
+    "NSC",
+    "NTRS",
+    "NOC",
+    "NCLH",
+    "NRG",
+    "NUE",
+    "NVDA",
+    "NVR",
+    "NXPI",
+    "ORLY",
+    "OXY",
+    "ODFL",
+    "OMC",
+    "ON",
+    "OKE",
+    "ORCL",
+    "OTIS",
+    "PCAR",
+    "PKG",
+    "PLTR",
+    "PANW",
+    "PARA",
+    "PH",
+    "PAYX",
+    "PAYC",
+    "PYPL",
+    "PNR",
+    "PEP",
+    "PFE",
+    "PCG",
+    "PM",
+    "PSX",
+    "PNW",
+    "PNC",
+    "POOL",
+    "PPG",
+    "PPL",
+    "PFG",
+    "PG",
+    "PGR",
+    "PLD",
+    "PRU",
+    "PEG",
+    "PTC",
+    "PSA",
+    "PHM",
+    "QRVO",
+    "PWR",
+    "QCOM",
+    "DGX",
+    "RL",
+    "RJF",
+    "RTX",
+    "O",
+    "REG",
+    "REGN",
+    "RF",
+    "RSG",
+    "RMD",
+    "RVTY",
+    "ROK",
+    "ROL",
+    "ROP",
+    "ROST",
+    "RCL",
+    "SPGI",
+    "CRM",
+    "SBAC",
+    "SLB",
+    "STX",
+    "SRE",
+    "NOW",
+    "SHW",
+    "SPG",
+    "SWKS",
+    "SJM",
+    "SW",
+    "SNA",
+    "SOLV",
+    "SO",
+    "LUV",
+    "SWK",
+    "SBUX",
+    "STT",
+    "STLD",
+    "STE",
+    "SYK",
+    "SMCI",
+    "SYF",
+    "SNPS",
+    "SYY",
+    "TMUS",
+    "TROW",
+    "TTWO",
+    "TPR",
+    "TRGP",
+    "TGT",
+    "TEL",
+    "TDY",
+    "TFX",
+    "TER",
+    "TSLA",
+    "TXN",
+    "TXT",
+    "TMO",
+    "TJX",
+    "TSCO",
+    "TT",
+    "TDG",
+    "TRV",
+    "TRMB",
+    "TFC",
+    "TYL",
+    "TSN",
+    "USB",
+    "UBER",
+    "UDR",
+    "ULTA",
+    "UNP",
+    "UAL",
+    "UPS",
+    "URI",
+    "UNH",
+    "UHS",
+    "VLO",
+    "VTR",
+    "VLTO",
+    "VRSN",
+    "VRSK",
+    "VZ",
+    "VRTX",
+    "VTRS",
+    "VICI",
+    "V",
+    "VST",
+    "VMC",
+    "WRB",
+    "GWW",
+    "WAB",
+    "WBA",
+    "WMT",
+    "DIS",
+    "WBD",
+    "WM",
+    "WAT",
+    "WEC",
+    "WFC",
+    "WELL",
+    "WST",
+    "WDC",
+    "WY",
+    "WMB",
+    "WTW",
+    "WYNN",
+    "XEL",
+    "XYL",
+    "YUM",
+    "ZBRA",
+    "ZBH",
+    "ZTS",
+]
+
+
 def _parse_month(month_str: str) -> datetime:
     """Parse a month string formatted as 'YYYY.MM' into a datetime object."""
     return datetime.strptime(month_str, "%Y.%m")
@@ -49,6 +556,10 @@ def load_daily(
     asset_type: AssetType,
     month_range: tuple[str, str] | None = None,
     threads: int = 4,
+    symbols: list[str] | None = None,
+    adjust: bool = True,
+    to_usd: bool = True,
+    rate_to_price: bool = True,
     token: dict | None = None,
     cache: bool = False,
 ) -> pd.DataFrame:
@@ -69,6 +580,10 @@ def load_daily(
         A merged pandas DataFrame containing the data from all loaded parquet files.
     """
     # Get repo_id from asset_type and compute repo_name (last part of the repo_id in lowercase)
+    if isinstance(symbols, list) and "sp500" in symbols:
+        symbols.remove("sp500")
+        symbols += SP500_SYMBOLS
+
     repo_id = asset_type.value
     repo_name = repo_id.split("/")[-1].lower()
     logger.debug(f"Loading data: repo_id={repo_id}, repo_name={repo_name}")
@@ -121,11 +636,208 @@ def load_daily(
 
     if not dfs:
         raise ValueError("No data loaded.")
-    combined_df = pd.concat(dfs, ignore_index=True)
-    # Sort the combined DataFrame by date and symbol
+
+    combined_df = (
+        pd.concat(dfs, ignore_index=True)
+        .sort_values(["date", "symbol"])
+        .reset_index(drop=True)
+    )
+
+    if symbols:
+        combined_df = combined_df[combined_df["symbol"].isin(symbols)].copy()
+
+    combined_df["date"] = pd.to_datetime(combined_df["date"])
+
+    if adjust and "adj_close" in combined_df.columns:
+        adj_factor = combined_df["adj_close"] / combined_df["close"]
+        combined_df["adj_open"] = combined_df["open"] * adj_factor
+        combined_df["adj_high"] = combined_df["high"] * adj_factor
+        combined_df["adj_low"] = combined_df["low"] * adj_factor
+        combined_df.drop(columns=["open", "high", "low", "close"], inplace=True)
+        combined_df.rename(
+            columns={
+                "adj_open": "open",
+                "adj_high": "high",
+                "adj_low": "low",
+                "adj_close": "close",
+            },
+            inplace=True,
+        )
+    else:
+        if "adj_close" in combined_df.columns:
+            combined_df.drop(columns=["adj_close"])
+
+    if to_usd:
+        if asset_type == AssetType.Forex:
+            for index, row in combined_df.iterrows():
+                if row["symbol"].endswith("USD"):
+                    continue
+                combined_df.at[index, "open"] = 1 / row["open"]
+                combined_df.at[index, "high"] = 1 / row["high"]
+                combined_df.at[index, "low"] = 1 / row["low"]
+                combined_df.at[index, "close"] = 1 / row["close"]
+                combined_df.at[index, "symbol"] = row["symbol"][3:] + "USD"
+        elif asset_type == AssetType.Indices:
+            df_forex = load_daily(
+                AssetType.Forex, token=token, cache=cache, to_usd=True
+            )
+            combined_df = __convert_indices_to_usd(combined_df, df_forex)
+
+    if rate_to_price and asset_type == AssetType.Bonds:
+        for index, row in combined_df.iterrows():
+            years_to_maturity = __extract_years_to_maturity(row["symbol"])
+            if not years_to_maturity:
+                continue
+            face_value = 100
+            for col in ["open", "high", "low", "close"]:
+                rate = row[col]
+                combined_df.loc[index, col] = (
+                    face_value / (1 + rate) ** years_to_maturity
+                )
+
     combined_df = combined_df.sort_values(["date", "symbol"]).reset_index(drop=True)
+
     logger.info(f"Merged DataFrame record count: {len(combined_df)}")
     return combined_df
+
+
+def __extract_years_to_maturity(bond_symbol):
+    match = re.search(r"(\d+)([YM])$", bond_symbol)
+    if match:
+        time_value = int(match.group(1))  # Extract the numeric value
+        time_unit = match.group(2)  # Extract the time unit (Y or M)
+        if time_unit == "Y":
+            return time_value  # It's already in years
+        elif time_unit == "M":
+            return time_value / 12  # Convert months to years
+
+
+def __convert_indices_to_usd(df_indices, df_forex):
+    mapping = {
+        "ADSMI": "AED",  # United Arab Emirates
+        "AEX": "EUR",  # Netherlands
+        "AS30": "AUD",  # Australia
+        "AS51": "AUD",  # Australia
+        "AS52": "AUD",  # Australia
+        "ASE": "EUR",  # Greece
+        "ATX": "EUR",  # Austria
+        "BEL20": "EUR",  # Belgium
+        "BELEX15": "RSD",  # Serbia
+        "BGSMDC": "BWP",  # Botswana
+        "BHSEEI": "BHD",  # Bahrain
+        "BKA": "BAM",  # Bosnia and Herzegovina
+        "BLOM": "LBP",  # Lebanon
+        "BSX": "BMD",  # Bermuda
+        "BUX": "HUF",  # Hungary
+        "BVLX": "BOB",  # Bolivia
+        "BVPSBVPS": "PAB",  # Panama
+        "BVQA": "USD",  # Ecuador
+        "CAC": "EUR",  # France
+        "CASE": "EGP",  # Egypt
+        "CCMP": "USD",  # United States
+        "COLCAP": "COP",  # Colombia
+        "CRSMBCT": "CRC",  # Costa Rica
+        "CSEALL": "LKR",  # Sri Lanka
+        "CYSMMAPA": "EUR",  # Cyprus
+        "DARSDSEI": "TZS",  # Tanzania
+        "DAX": "EUR",  # Germany
+        "DFMGI": "AED",  # United Arab Emirates
+        "DSEX": "BDT",  # Bangladesh
+        "DSM": "QAR",  # Qatar
+        "ECU": "USD",  # Ecuador
+        "FBMKLCI": "MYR",  # Malaysia
+        "FSSTI": "SGD",  # Singapore
+        "FTN098": "NAD",  # Namibia
+        "FTSEMIB": "EUR",  # Italy
+        "GGSECI": "GHS",  # Ghana
+        "HEX": "EUR",  # Finland
+        "HEX25": "EUR",  # Finland
+        "HSI": "HKD",  # Hong Kong
+        "IBEX": "EUR",  # Spain
+        "IBOV": "BRL",  # Brazil
+        "IBVC": "VES",  # Venezuela
+        "ICEXI": "ISK",  # Iceland
+        "IGPA": "CLP",  # Chile
+        "INDEXCF": "RUB",  # Russia
+        "INDU": "USD",  # United States
+        "INDZI": "IDR",  # Indonesia
+        "ISEQ": "EUR",  # Ireland
+        "JALSH": "ZAR",  # South Africa
+        "JCI": "IDR",  # Indonesia
+        "JMSMX": "JMD",  # Jamaica
+        "JOSMGNFF": "JOD",  # Jordan
+        "KFX": "DKK",  # Denmark
+        "KNSMIDX": "KES",  # Kenya
+        "KSE100": "PKR",  # Pakistan
+        "KZKAK": "KZT",  # Kazakhstan
+        "LSXC": "LAK",  # Laos
+        "LUXXX": "EUR",  # Luxembourg
+        "MALTEX": "EUR",  # Malta
+        "MBI": "MKD",  # North Macedonia
+        "MERVAL": "ARS",  # Argentina
+        "MEXBOL": "MXN",  # Mexico
+        "MONEX": "EUR",  # Montenegro
+        "MOSENEW": "MAD",  # Morocco
+        "MSETOP": "MKD",  # North Macedonia
+        "MSM30": "OMR",  # Oman
+        "NDX": "USD",  # United States
+        "NGSEINDX": "NGN",  # Nigeria
+        "NIFTY": "INR",  # India
+        "NKY": "JPY",  # Japan
+        "NSEASI": "KES",  # Kenya
+        "NZSE50FG": "NZD",  # New Zealand
+        "OMX": "SEK",  # Sweden
+        "OSEAX": "NOK",  # Norway
+        "PCOMP": "PHP",  # Philippines
+        "PFTS": "UAH",  # Ukraine
+        "PSI20": "EUR",  # Portugal
+        "PX": "CZK",  # Czech Republic
+        "RIGSE": "EUR",  # Latvia
+        "RTY": "USD",  # United States
+        "SASEIDX": "SAR",  # Saudi Arabia
+        "SASX10": "BAM",  # Bosnia and Herzegovina
+        "SBITOP": "EUR",  # Slovenia
+        "SEMDEX": "MUR",  # Mauritius
+        "SENSEX": "INR",  # India
+        "SET50": "THB",  # Thailand
+        "SHCOMP": "CNY",  # China
+        "SHSZ300": "CNY",  # China
+        "SKSM": "EUR",  # Slovakia
+        "SMI": "CHF",  # Switzerland
+        "SOFIX": "BGN",  # Bulgaria
+        "SPBLPGPT": "PEN",  # Peru
+        "SPTSX": "CAD",  # Canada
+        "SPX": "USD",  # United States
+        "SSE50": "CNY",  # China
+        "SX5E": "EUR",  # Europe
+        "TA125": "ILS",  # Israel
+    }
+    symbols = df_indices.symbol.unique()
+    mapping = {k: v for k, v in mapping.items() if k in symbols}
+    frames = []
+    for symbol, currency in mapping.items():
+        df_index = df_indices[df_indices["symbol"] == symbol].copy()
+        if currency == "USD":
+            frames.append(df_index)
+            continue
+        df_forex_currency = df_forex[df_forex["symbol"] == currency + "USD"].copy()
+        if df_index.empty or df_forex_currency.empty:
+            continue
+        # Merge dataframes on the date column
+        merged_df = pd.merge(
+            df_index, df_forex_currency, on="date", suffixes=("", "_forex")
+        )
+
+        # Multiply the index prices by the corresponding forex rates
+        merged_df["open"] = merged_df["open"] * merged_df["open_forex"]
+        merged_df["high"] = merged_df["high"] * merged_df["high_forex"]
+        merged_df["low"] = merged_df["low"] * merged_df["low_forex"]
+        merged_df["close"] = merged_df["close"] * merged_df["close_forex"]
+
+        frames.append(merged_df[["symbol", "date", "open", "high", "low", "close"]])
+
+    df = pd.concat(frames, ignore_index=True)
+    return df
 
 
 def list_available_months(

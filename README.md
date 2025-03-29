@@ -39,6 +39,30 @@ df_range = load_daily(
 print(f"Loaded {len(df)} records")
 ```
 
+### Function Parameters
+
+The `load_daily` function accepts the following parameters:
+
+- `asset_type` (AssetType): The type of asset to load (Stocks, ETFs, Indices, or Cryptocurrencies)
+- `month_range` (tuple[str, str] | None): Optional tuple (start, end) with month strings in 'YYYY.MM' format. If None, loads all available months
+- `symbols` (list[str] | None): Optional list of symbols to load. If None, loads all available symbols. If `sp500` is in the list, it will be removed and SP500 symbols will be added.
+- `threads` (int): Number of threads to use for concurrent loading (default: 4)
+- `adjust` (bool): Whether to adjust prices using the adjustment factor (default: True)
+- `to_usd` (bool): Whether to convert prices to USD (default: True)
+  - For Forex: Inverts exchange rates (e.g., EURUSD becomes USDEUR)
+  - For Indices: Converts to USD using corresponding currency exchange rates
+- `rate_to_price` (bool): For Bonds, whether to convert interest rates to prices (default: True)
+- `token` (dict | None): Optional dictionary containing R2 credentials:
+  ```python
+  {
+      "R2_ENDPOINT_URL": "your-r2-endpoint",
+      "R2_ACCESS_KEY_ID": "your-access-key",
+      "R2_SECRET_ACCESS_KEY": "your-secret-key"
+  }
+  ```
+  If None, environment variables are used
+- `cache` (bool): Whether to use local caching for improved performance (default: False)
+
 The package uses a namespace package structure, so even though the package name is **alpha-isnow**, you import it with `from alpha.datasets import ...`
 
 ## Development
@@ -63,6 +87,11 @@ This will install:
   - twine: For uploading to PyPI
 
 ### Building and Releasing
+
+> Note: This section is only for maintainers. Please make sure you have written the pytest for your changes.
+
+
+To upgrade the version, update the version `setup.py`.
 
 To build distribution packages:
 
