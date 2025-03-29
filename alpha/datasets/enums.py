@@ -8,3 +8,4 @@ class AssetType(Enum):
     Cryptocurrencies = "ds/cryptocurrencies-daily-price"
     Forex = "ds/forex-daily-price"
     Bonds = "ds/bonds-daily-price"
+    Commodities = "ds/commodities-daily-price"

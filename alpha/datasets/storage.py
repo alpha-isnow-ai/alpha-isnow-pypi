@@ -96,9 +96,9 @@ def load_parquet_file(
 
         # Load from S3 and save to cache
         df = pd.read_parquet(file_path, filesystem=fs)
-        df = df.sort_values(["date", "symbol"]).reset_index(drop=True)
+        # df = df.sort_values(["date", "symbol"]).reset_index(drop=True)
         df.to_parquet(cache_file)
         return df
     else:
-        df = pd.read_parquet(file_path, filesystem=fs)
-        return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+        return pd.read_parquet(file_path, filesystem=fs)
+        # return df.sort_values(["date", "symbol"]).reset_index(drop=True)

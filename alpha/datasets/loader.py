@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 import re
 import pandas as pd
@@ -557,6 +558,7 @@ def load_daily(
     month_range: tuple[str, str] | None = None,
     threads: int = 4,
     symbols: list[str] | None = None,
+    extend: bool = False,
     adjust: bool = True,
     to_usd: bool = True,
     rate_to_price: bool = True,
@@ -580,9 +582,13 @@ def load_daily(
         A merged pandas DataFrame containing the data from all loaded parquet files.
     """
     # Get repo_id from asset_type and compute repo_name (last part of the repo_id in lowercase)
-    if isinstance(symbols, list) and "sp500" in symbols:
-        symbols.remove("sp500")
-        symbols += SP500_SYMBOLS
+    if isinstance(symbols, list):
+        if "sp500" in symbols:
+            symbols.remove("sp500")
+            symbols += SP500_SYMBOLS
+        elif "SP500" in symbols:
+            symbols.remove("SP500")
+            symbols += SP500_SYMBOLS
 
     repo_id = asset_type.value
     repo_name = repo_id.split("/")[-1].lower()
@@ -637,6 +643,9 @@ def load_daily(
     if not dfs:
         raise ValueError("No data loaded.")
 
+    combined_df = pd.concat(dfs, ignore_index=True)
+    combined_df["date"] = pd.to_datetime(combined_df["date"])
+
     combined_df = (
         pd.concat(dfs, ignore_index=True)
         .sort_values(["date", "symbol"])
@@ -645,8 +654,6 @@ def load_daily(
 
     if symbols:
         combined_df = combined_df[combined_df["symbol"].isin(symbols)].copy()
-
-    combined_df["date"] = pd.to_datetime(combined_df["date"])
 
     if adjust and "adj_close" in combined_df.columns:
         adj_factor = combined_df["adj_close"] / combined_df["close"]
@@ -667,6 +674,9 @@ def load_daily(
         if "adj_close" in combined_df.columns:
             combined_df.drop(columns=["adj_close"])
 
+    if extend and asset_type == AssetType.ETFs:
+        combined_df = extend_etfs(combined_df, month_range=month_range, cache=cache)
+
     if to_usd:
         if asset_type == AssetType.Forex:
             for index, row in combined_df.iterrows():
@@ -679,7 +689,11 @@ def load_daily(
                 combined_df.at[index, "symbol"] = row["symbol"][3:] + "USD"
         elif asset_type == AssetType.Indices:
             df_forex = load_daily(
-                AssetType.Forex, token=token, cache=cache, to_usd=True
+                AssetType.Forex,
+                token=token,
+                month_range=month_range,
+                cache=cache,
+                to_usd=True,
             )
             combined_df = __convert_indices_to_usd(combined_df, df_forex)
 
@@ -710,6 +724,109 @@ def __extract_years_to_maturity(bond_symbol):
             return time_value  # It's already in years
         elif time_unit == "M":
             return time_value / 12  # Convert months to years
+
+
+def extend_etfs(
+    df_etfs, cache: bool = False, month_range: tuple[str, str] | None = None
+):
+
+    mapping = {
+        "AGG": [AssetType.Bonds, "US10Y"],
+        "EPP": [AssetType.Indices, "HSI"],
+        "EWA": [AssetType.Indices, "AS30"],  # Australia
+        "EWO": [AssetType.Indices, "ATX"],  # Austria
+        "EWK": [AssetType.Indices, "BEL20"],  # Belgium
+        "EWZ": [AssetType.Indices, "IBOV"],  # Brazil
+        "EWC": [AssetType.Indices, "SPTSX"],  # Canada
+        "FXI": [AssetType.Indices, "SSE50"],  # China
+        "EWQ": [AssetType.Indices, "CAC"],  # France
+        "EWG": [AssetType.Indices, "DAX"],  # Germany
+        "EWH": [AssetType.Indices, "HSI"],  # Hong Kong
+        "EWI": [AssetType.Indices, "FTSEMIB"],  # Italy
+        "EWJ": [AssetType.Indices, "NKY"],
+        "EWM": [AssetType.Indices, "FBMKLCI"],  # Malaysia
+        "EWW": [AssetType.Indices, "MEXBOL"],  # Mexico
+        "EWN": [AssetType.Indices, "AEX"],  # Netherlands
+        "EWS": [AssetType.Indices, "FSSTI"],  # Singapore
+        "EZA": [AssetType.Indices, "TOP40"],  # South Africa
+        "EWP": [AssetType.Indices, "IBEX"],  # Spain
+        "EWD": [AssetType.Indices, "OMX"],  # Sweden
+        "EWL": [AssetType.Indices, "SMI"],  # Switzerland
+        "EWT": [AssetType.Indices, "TWSE"],  # Taiwan
+        "EWU": [AssetType.Indices, "UKX"],  # United Kingdom
+        "GLD": [AssetType.Commodities, "GC1"],
+        "IEF": [AssetType.Bonds, "US10Y"],
+        "IEV": [AssetType.Indices, "SX5E"],
+        "IWB": [AssetType.Indices, "SPX"],
+        "SHY": [AssetType.Bonds, "US1Y"],
+        "SPY": [AssetType.Indices, "SPX"],
+        "THD": [AssetType.Indices, "SET50"],  # Thailand
+    }
+    symbols = df_etfs.symbol.unique()
+    mapping = {k: v for k, v in mapping.items() if k in symbols}
+
+    grouped_path_symbols = defaultdict(list)
+    for value in mapping.values():
+        grouped_path_symbols[value[0]].append(value[1])
+    grouped_path_symbols = dict(grouped_path_symbols)
+    df_others = pd.concat(
+        [
+            load_daily(
+                asset_type=asset_type,
+                symbols=symbols,
+                month_range=month_range,
+                cache=cache,
+                to_usd=True,
+            )
+            for asset_type, symbols in grouped_path_symbols.items()
+        ]
+    )
+
+    frames = []
+    for etf, other in mapping.items():
+        other_symbol = other[1]
+        # Get the ETF & Index data
+        etf_data = df_etfs[df_etfs["symbol"] == etf]
+        if etf_data.empty:
+            continue
+        other_data = df_others[df_others["symbol"] == other_symbol]
+        if other_data.empty:
+            continue
+
+        # Find the first overlapping date
+        common_dates = etf_data["date"].isin(other_data["date"])
+        first_common_date = etf_data.loc[common_dates, "date"].min()
+
+        if pd.isnull(first_common_date):
+            print(f"No common date found for {etf} and {other_symbol}")
+            continue
+
+        etf_first_common = etf_data[etf_data["date"] == first_common_date]
+        other_first_common = other_data[other_data["date"] == first_common_date]
+
+        # Compute the adjustment factor (using closing prices for simplicity)
+        adjustment_factor = (
+            etf_first_common["close"].values[0] / other_first_common["close"].values[0]
+        )
+
+        # Adjust index data before the first common date
+        index_data_before_common = other_data[
+            other_data["date"] < first_common_date
+        ].copy()
+        for column in ["open", "high", "low", "close"]:
+            index_data_before_common.loc[:, column] *= adjustment_factor
+        index_data_before_common.loc[:, "symbol"] = etf
+
+        # Combine adjusted index data with ETF data
+        combined_data = pd.concat([index_data_before_common, etf_data])
+        frames.append(combined_data)
+
+    symbols_not_in_mapping = set(symbols) - set(mapping.keys())
+    frames.append(df_etfs[df_etfs["symbol"].isin(symbols_not_in_mapping)])
+
+    # Concatenate all frames to form the final dataframe
+    df = pd.concat(frames).sort_values(by=["date", "symbol"]).reset_index(drop=True)
+    return df
 
 
 def __convert_indices_to_usd(df_indices, df_forex):

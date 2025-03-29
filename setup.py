@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="alpha-isnow",
-    version="0.1.3",
+    version="0.1.4",
     author="Wan, Guolin <wanguolin@gmail.com>",
     description="A library to for https://alpha.isnow.ai",
     long_description=long_description,
