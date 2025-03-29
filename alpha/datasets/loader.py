@@ -50,6 +50,7 @@ def load_daily(
     month_range: tuple[str, str] | None = None,
     threads: int = 4,
     token: dict | None = None,
+    cache: bool = False,
 ) -> pd.DataFrame:
     """
     Load the daily data for the specified asset type and merge into one DataFrame.
@@ -62,6 +63,7 @@ def load_daily(
         threads: Number of threads to use for concurrent loading (default is 4).
         token: A dictionary containing R2 credentials with keys: R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
                If None, environment variables are used.
+        cache: Whether to use caching for loading parquet files (default is False).
 
     Returns:
         A merged pandas DataFrame containing the data from all loaded parquet files.
@@ -72,7 +74,7 @@ def load_daily(
     logger.debug(f"Loading data: repo_id={repo_id}, repo_name={repo_name}")
 
     # List all parquet files under ds/<repo_name>/ on R2
-    file_dict = list_parquet_files(repo_name, token)
+    file_dict = list_parquet_files(repo_name=repo_name, token=token)
     if not file_dict:
         raise ValueError(f"No parquet files found for repo {repo_name}.")
     available_months = sorted(file_dict.keys())
@@ -96,7 +98,13 @@ def load_daily(
     dfs = []
     with ThreadPoolExecutor(max_workers=threads) as executor:
         future_to_month = {
-            executor.submit(load_parquet_file, repo_name, month, token): month
+            executor.submit(
+                load_parquet_file,
+                repo_name=repo_name,
+                month=month,
+                token=token,
+                cache=cache,
+            ): month
             for month in selected_months
         }
         for future in as_completed(future_to_month):
@@ -114,6 +122,8 @@ def load_daily(
     if not dfs:
         raise ValueError("No data loaded.")
     combined_df = pd.concat(dfs, ignore_index=True)
+    # Sort the combined DataFrame by date and symbol
+    combined_df = combined_df.sort_values(["date", "symbol"]).reset_index(drop=True)
     logger.info(f"Merged DataFrame record count: {len(combined_df)}")
     return combined_df
 
@@ -136,6 +146,6 @@ def list_available_months(
     """
     repo_id = asset_type.value
     repo_name = repo_id.split("/")[-1].lower()
-    file_dict = list_parquet_files(repo_name, token)
+    file_dict = list_parquet_files(repo_name=repo_name, token=token)
     available_months = sorted(file_dict.keys())
     return available_months

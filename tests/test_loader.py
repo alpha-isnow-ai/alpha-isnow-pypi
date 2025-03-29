@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 import datetime
+import time
 from alpha.datasets import load_daily, AssetType, list_available_months
 import alpha.datasets.storage as storage
 import dotenv
@@ -25,7 +26,7 @@ token = {
 
 def get_available_months():
     """Helper function to get available months for tests"""
-    return list_available_months(AssetType.Stocks)
+    return list_available_months(asset_type=AssetType.Stocks, token=token)
 
 
 def test_list_available_months():
@@ -178,3 +179,63 @@ def test_load_daily_all_months():
             assert len(months_in_df) >= len(
                 recent_months
             ), f"Expected at least {len(recent_months)} months, got {len(months_in_df)}"
+
+
+def test_load_daily_cache_performance():
+    """Test that loading data with cache is significantly faster than without cache"""
+    available_months = get_available_months()
+
+    # Use last 3 months of data for testing
+    recent_months = (
+        available_months[-3:] if len(available_months) >= 3 else available_months
+    )
+    start_month = recent_months[0]
+    end_month = recent_months[-1]
+
+    print(f"\nTesting cache performance with months: {start_month} to {end_month}")
+
+    # First warm up the cache
+    print("Warming up cache...")
+    _ = load_daily(
+        asset_type=AssetType.Stocks,
+        month_range=(start_month, end_month),
+        token=token,
+        cache=True,
+    )
+
+    # Then load without cache
+    print("Testing without cache...")
+    start_time = time.time()
+    df_without_cache = load_daily(
+        asset_type=AssetType.Stocks,
+        month_range=(start_month, end_month),
+        token=token,
+        cache=False,
+    )
+    time_without_cache = time.time() - start_time
+    print(f"Time without cache: {time_without_cache:.2f} seconds")
+
+    # Finally load with cache
+    print("Testing with cache...")
+    start_time = time.time()
+    df_with_cache = load_daily(
+        asset_type=AssetType.Stocks,
+        month_range=(start_month, end_month),
+        token=token,
+        cache=True,
+    )
+    time_with_cache = time.time() - start_time
+    print(f"Time with cache: {time_with_cache:.2f} seconds")
+
+    # Verify the data is the same
+    pd.testing.assert_frame_equal(df_with_cache, df_without_cache)
+
+    # Verify that loading with cache is significantly faster
+    # We expect at least 2x faster with cache
+    assert (
+        time_without_cache > time_with_cache * 2
+    ), f"Loading with cache ({time_with_cache:.2f}s) should be significantly faster than without cache ({time_without_cache:.2f}s)"
+
+    print(
+        f"Cache performance test passed: {time_without_cache/time_with_cache:.1f}x faster with cache"
+    )

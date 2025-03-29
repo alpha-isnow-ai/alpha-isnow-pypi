@@ -3,6 +3,8 @@ import logging
 import s3fs
 import pandas as pd
 from typing import Dict
+import os
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +49,7 @@ def list_parquet_files(repo_name: str, token: dict | None = None) -> Dict[str, s
 
     Returns a dictionary where the key is the month string (YYYY.MM) and the value is the full file path.
     """
-    fs = get_r2_filesystem(token)
+    fs = get_r2_filesystem(token=token)
     base_path = f"{_BUCKET_NAME}/ds/{repo_name}/"
     logger.debug(f"Listing files under path {base_path}")
     try:
@@ -67,13 +69,36 @@ def list_parquet_files(repo_name: str, token: dict | None = None) -> Dict[str, s
 
 
 def load_parquet_file(
-    repo_name: str, month: str, token: dict | None = None
+    repo_name: str, month: str, token: dict | None = None, cache: bool = False
 ) -> pd.DataFrame:
     """
     Load the parquet file for a specified month.
+    If cache is True, the file will be cached locally to speed up subsequent reads.
+    The returned DataFrame is sorted by date and symbol to ensure consistency.
     """
-    fs = get_r2_filesystem(token)
+    fs = get_r2_filesystem(token=token)
     file_path = f"s3://{_BUCKET_NAME}/ds/{repo_name}/{month}.parquet"
     logger.debug(f"Loading file {file_path}")
-    df = pd.read_parquet(file_path, filesystem=fs)
-    return df
+
+    if cache:
+        # Use local cache directory for caching
+        cache_dir = os.path.join(os.path.expanduser("~"), ".alpha_isnow_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_file = os.path.join(cache_dir, f"{repo_name}_{month}.parquet")
+
+        # Check if cache file exists and is not too old (< 24 hours)
+        if os.path.exists(cache_file):
+            cache_age = time.time() - os.path.getmtime(cache_file)
+            if cache_age < 24 * 3600:  # 24 hours in seconds
+                logger.debug(f"Loading from cache: {cache_file}")
+                df = pd.read_parquet(cache_file)
+                return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+
+        # Load from S3 and save to cache
+        df = pd.read_parquet(file_path, filesystem=fs)
+        df = df.sort_values(["date", "symbol"]).reset_index(drop=True)
+        df.to_parquet(cache_file)
+        return df
+    else:
+        df = pd.read_parquet(file_path, filesystem=fs)
+        return df.sort_values(["date", "symbol"]).reset_index(drop=True)
