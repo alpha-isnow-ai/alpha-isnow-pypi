@@ -88,11 +88,6 @@ This will install:
 
 ### Building and Releasing
 
-> Note: This section is only for maintainers. Please make sure you have written the pytest for your changes.
-
-
-To upgrade the version, update the version `setup.py`.
-
 To build distribution packages:
 
 ```bash
@@ -107,13 +102,20 @@ To release to PyPI:
 ```bash
 # Upload to PyPI (requires PyPI credentials)
 python -m twine upload dist/*
+
+# Or upload to TestPyPI first (recommended for first-time releases)
+python -m twine upload --repository testpypi dist/*
 ```
 
-For first-time releases, it's recommended to test on TestPyPI first:
+Note: You only need to upload the latest version. PyPI will maintain the version history automatically.
 
+To upload a specific version:
 ```bash
-# Upload to TestPyPI
-python -m twine upload --repository testpypi dist/*
+# Upload specific version files
+python -m twine upload dist/alpha_isnow-<version>
+
+# Or upload to TestPyPI
+python -m twine upload --repository testpypi dist/alpha_isnow-<version>
 ```
 
 ### PyPI Configuration
