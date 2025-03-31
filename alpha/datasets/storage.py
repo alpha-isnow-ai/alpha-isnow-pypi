@@ -88,11 +88,9 @@ def load_parquet_file(
 
         # Check if cache file exists and is not too old (< 24 hours)
         if os.path.exists(cache_file):
-            cache_age = time.time() - os.path.getmtime(cache_file)
-            if cache_age < 24 * 3600:  # 24 hours in seconds
-                logger.debug(f"Loading from cache: {cache_file}")
-                df = pd.read_parquet(cache_file)
-                return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+            logger.debug(f"Loading from cache: {cache_file}")
+            df = pd.read_parquet(cache_file)
+            return df.sort_values(["date", "symbol"]).reset_index(drop=True)
 
         # Load from S3 and save to cache
         df = pd.read_parquet(file_path, filesystem=fs)

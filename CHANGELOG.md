@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-03-30
+
+### Fixed
+- Fix the issue that the cache file is not updated when cache age is less than 24 hours 
+
 ## [0.1.4] - 2025-03-29
 
 ### Added
@@ -13,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	- Streamline test cases
 	- Reduce complexity in test cases
 	- Add test cases for symbol: `spy500` or `SPY500`
+
 
 ## [0.1.3] - 2025-03-29
 
