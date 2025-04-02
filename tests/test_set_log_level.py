@@ -21,14 +21,12 @@ from alpha.datasets.enums import AssetType
 from alpha.datasets.loader import load_daily
 
 # Configure root logger to directly output to console
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s - %(name)s - %(message)s",
-    force=True,
-)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="[%(asctime)s] %(levelname)s - %(name)s - %(message)s",
+#     force=True,
+# )
 
-# Set very verbose logging
-set_log_level(logging.DEBUG)
 
 print("=" * 80)
 print("Starting test with DEBUG level logging")
@@ -53,6 +51,14 @@ try:
 
     print("\nAttempting to load data...")
     # Will likely fail with invalid credentials, but should log attempts
+    print("Loading data and you should see DEBUG logs ONLY")
+    set_log_level(logging.DEBUG, module="loader")
+    data = load_daily(
+        asset_type=AssetType.Stocks, month_range=("2023.01", "2023.02"), token=token
+    )
+
+    print("Loading data and you should see INFO logs")
+    set_log_level(logging.INFO, module="loader")
     data = load_daily(
         asset_type=AssetType.Stocks, month_range=("2023.01", "2023.02"), token=token
     )
