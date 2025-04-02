@@ -6,7 +6,15 @@ from typing import Dict
 import os
 import time
 
-logger = logging.getLogger(__name__)
+# Use fully qualified name for logger
+logger = logging.getLogger("alpha.datasets.storage")
+
+# Only add handler if not already configured
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 _BUCKET_NAME = "alpha"
 

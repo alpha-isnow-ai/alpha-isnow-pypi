@@ -7,15 +7,19 @@ from datetime import datetime
 from .enums import AssetType
 from .storage import list_parquet_files, load_parquet_file
 
-# Set up logger
-logger = logging.getLogger(__name__)
+# Logger setup with fully qualified name
+logger = logging.getLogger("alpha.datasets.loader")
 
+# Only add handler if not already configured
 if not logger.handlers:
     handler = logging.StreamHandler()
     formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-logger.setLevel(logging.ERROR)  # Default log level is ERROR
+
+# Important: Don't set level here to allow __init__.py control
+# if logger.level == 0:  # Only set if not explicitly set elsewhere
+#     logger.setLevel(logging.ERROR)  # Default level
 
 
 SP500_SYMBOLS = [
@@ -581,6 +585,7 @@ def load_daily(
     Returns:
         A merged pandas DataFrame containing the data from all loaded parquet files.
     """
+    logger.info("Loading daily data")
     # Get repo_id from asset_type and compute repo_name (last part of the repo_id in lowercase)
     if isinstance(symbols, list):
         if "sp500" in symbols:

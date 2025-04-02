@@ -2,14 +2,27 @@ import pandas as pd
 import pytest
 import datetime
 import time
-from alpha.datasets import load_daily, AssetType, list_available_months
+from alpha.datasets import load_daily, AssetType, list_available_months, set_log_level
 import dotenv
 import os
 import warnings
 import sys
+import logging
+
+# Configure pytest to show logs
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s - %(name)s - %(message)s",
+    force=True,
+)
 
 # Suppress boto3 deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="botocore.auth")
+
+# Set DEBUG level for loader module to see all logs
+set_log_level(logging.DEBUG, module="loader")
+# Also enable storage module logs
+set_log_level(logging.DEBUG, module="storage")
 
 dotenv.load_dotenv()
 
