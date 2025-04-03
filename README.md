@@ -65,6 +65,40 @@ The `load_daily` function accepts the following parameters:
 
 The package uses a namespace package structure, so even though the package name is **alpha-isnow**, you import it with `from alpha.datasets import ...`
 
+## Logging Configuration
+
+The library uses Python's standard `logging` module with a default level of `ERROR`. You can configure the logging level to get more detailed information:
+
+```python
+import logging
+from alpha.datasets import set_log_level
+
+# Set log level for all modules to DEBUG
+set_log_level(logging.DEBUG)
+
+# Or set log level for a specific module
+set_log_level(logging.INFO, module="loader")
+```
+
+Available log levels:
+- `logging.DEBUG`: Detailed debugging information
+- `logging.INFO`: Confirmation that things are working as expected
+- `logging.WARNING`: Indication that something unexpected happened
+- `logging.ERROR`: Error that prevented a function from working (default)
+- `logging.CRITICAL`: Critical error that prevents the program from continuing
+
+Example with logging enabled:
+```python
+import logging
+from alpha.datasets import set_log_level, load_daily, AssetType
+
+# Enable informational logging
+set_log_level(logging.INFO)
+
+# Now load data (with logging output)
+df = load_daily(AssetType.Stocks, month_range=("2023.01", "2023.02"))
+```
+
 ## Development
 
 ### Installation for Development

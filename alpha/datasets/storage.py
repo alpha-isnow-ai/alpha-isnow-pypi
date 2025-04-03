@@ -6,8 +6,8 @@ from typing import Dict
 import os
 import time
 
-# Use fully qualified name for logger
-logger = logging.getLogger("alpha.datasets.storage")
+# Use __name__ for logger (standard practice)
+logger = logging.getLogger(__name__)
 
 # Only add handler if not already configured
 if not logger.handlers:

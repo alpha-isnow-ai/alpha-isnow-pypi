@@ -7,8 +7,8 @@ from datetime import datetime
 from .enums import AssetType
 from .storage import list_parquet_files, load_parquet_file
 
-# Logger setup with fully qualified name
-logger = logging.getLogger("alpha.datasets.loader")
+# Logger setup using __name__ (standard practice)
+logger = logging.getLogger(__name__)
 
 # Only add handler if not already configured
 if not logger.handlers:

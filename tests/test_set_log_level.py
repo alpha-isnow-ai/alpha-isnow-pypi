@@ -51,13 +51,15 @@ try:
 
     print("\nAttempting to load data...")
     # Will likely fail with invalid credentials, but should log attempts
-    print("Loading data and you should see DEBUG logs ONLY")
+    print(
+        "Loading data and you should see DEBUG, INFO, and ERROR logs (DEBUG is the lowest)"
+    )
     set_log_level(logging.DEBUG, module="loader")
     data = load_daily(
         asset_type=AssetType.Stocks, month_range=("2023.01", "2023.02"), token=token
     )
 
-    print("Loading data and you should see INFO logs")
+    print("Loading data and you should see INFO logs ONLY")
     set_log_level(logging.INFO, module="loader")
     data = load_daily(
         asset_type=AssetType.Stocks, month_range=("2023.01", "2023.02"), token=token

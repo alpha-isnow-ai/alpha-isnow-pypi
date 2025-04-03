@@ -1,6 +1,6 @@
 import logging
 import importlib
-import pkgutil
+import sys
 from .loader import load_daily, list_available_months
 from .enums import AssetType
 
@@ -18,23 +18,33 @@ def set_log_level(level, module=None):
     package_name = "alpha.datasets"
 
     if module:
-        # Set log level for a specific module
-        logger_name = f"{package_name}.{module}"
-        logger = logging.getLogger(logger_name)
+        # For specific module, try both formats for compatibility
+        module_path = f"{package_name}.{module}"  # Path for __name__
+
+        # Get and configure the logger
+        logger = logging.getLogger(module_path)
         logger.setLevel(level)
         if not logger.handlers:
             _add_handler(logger)
-        _loggers[logger_name] = logger
+        _loggers[module_path] = logger
         return _loggers
 
-    # Manually set known loggers to avoid import side effects
-    for module_name in ["loader", "storage"]:
-        logger_name = f"{package_name}.{module_name}"
-        logger = logging.getLogger(logger_name)
+    # For all modules in the package
+    import alpha.datasets
+    import inspect
+    import importlib
+
+    # Find all modules in the package
+    modules = ["loader", "storage"]  # Core modules we know about
+
+    for module_name in modules:
+        # Import the module to ensure it's loaded
+        module_path = f"{package_name}.{module_name}"
+        logger = logging.getLogger(module_path)
         logger.setLevel(level)
         if not logger.handlers:
             _add_handler(logger)
-        _loggers[logger_name] = logger
+        _loggers[module_path] = logger
 
     return _loggers
 
