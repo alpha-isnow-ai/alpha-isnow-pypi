@@ -567,7 +567,7 @@ def load_daily(
     to_usd: bool = True,
     rate_to_price: bool = True,
     token: dict | None = None,
-    cache: bool = False,
+    cache: bool = True,
 ) -> pd.DataFrame:
     """
     Load the daily data for the specified asset type and merge into one DataFrame.

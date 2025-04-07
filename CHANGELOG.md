@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix the issue that the cache file is not updated when cache age is less than 24 hours 
+- Update the default cache flag to `True`
 
 ## [0.1.4] - 2025-03-29
 

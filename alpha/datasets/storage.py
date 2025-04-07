@@ -77,7 +77,7 @@ def list_parquet_files(repo_name: str, token: dict | None = None) -> Dict[str, s
 
 
 def load_parquet_file(
-    repo_name: str, month: str, token: dict | None = None, cache: bool = False
+    repo_name: str, month: str, token: dict | None = None, cache: bool = True
 ) -> pd.DataFrame:
     """
     Load the parquet file for a specified month.
