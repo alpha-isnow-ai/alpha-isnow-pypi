@@ -133,6 +133,9 @@ python -m build
 
 To release to PyPI:
 
+> [!NOTE]
+> Before building and uploading to PyPI, don't forget to bump the version in `setup.py` and `CHANGELOG.md`.
+
 ```bash
 # Upload to PyPI (requires PyPI credentials)
 python -m twine upload dist/*
