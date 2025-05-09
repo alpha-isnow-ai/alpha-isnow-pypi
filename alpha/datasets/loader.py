@@ -612,8 +612,6 @@ def load_daily(
         filtered_months = [m for m in available_months if start <= m <= end]
         if not filtered_months:
             raise ValueError("No parquet files found within the specified month range.")
-        _validate_contiguity(filtered_months)
-        selected_months = filtered_months
     else:
         _validate_contiguity(available_months)
         selected_months = available_months

@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Dict
 import os
 import time
+import datetime
 
 # Use __name__ for logger (standard practice)
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-_BUCKET_NAME = "alpha"
+_BUCKET_NAME = "alpha-dataset-pwb"
 
 
 def get_r2_filesystem(token: dict | None = None) -> s3fs.S3FileSystem:
@@ -81,30 +82,51 @@ def load_parquet_file(
 ) -> pd.DataFrame:
     """
     Load the parquet file for a specified month.
-    If cache is True, the file will be cached locally to speed up subsequent reads.
-    The returned DataFrame is sorted by date and symbol to ensure consistency.
+    If cache is True, the file will be cached locally to speed up subsequent reads,
+    except for files from the last 6 months which are always freshly downloaded.
     """
     fs = get_r2_filesystem(token=token)
     file_path = f"s3://{_BUCKET_NAME}/ds/{repo_name}/{month}.parquet"
     logger.debug(f"Loading file {file_path}")
 
     if cache:
-        # Use local cache directory for caching
         cache_dir = os.path.join(os.path.expanduser("~"), ".alpha_isnow_cache")
         os.makedirs(cache_dir, exist_ok=True)
         cache_file = os.path.join(cache_dir, f"{repo_name}_{month}.parquet")
 
-        # Check if cache file exists and is not too old (< 24 hours)
+        # Check if the file is from the last 6 months
+        try:
+            year, month_num = map(int, month.split("."))
+            file_date = datetime.datetime(year, month_num, 1)
+            current_date = datetime.datetime.now()
+            months_diff = (current_date.year - file_date.year) * 12 + (
+                current_date.month - file_date.month
+            )
+
+            # Always download fresh data for the last 6 months
+            if months_diff <= 6:
+                logger.debug(
+                    f"File is from last 6 months, downloading fresh data: {file_path}"
+                )
+                df = pd.read_parquet(file_path, filesystem=fs)
+                df.to_parquet(cache_file)
+                return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+        except (ValueError, AttributeError) as e:
+            logger.warning(f"Error parsing month format: {e}, downloading fresh data")
+            df = pd.read_parquet(file_path, filesystem=fs)
+            df.to_parquet(cache_file)
+            return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+
+        # For older files, use cache if available
         if os.path.exists(cache_file):
             logger.debug(f"Loading from cache: {cache_file}")
             df = pd.read_parquet(cache_file)
             return df.sort_values(["date", "symbol"]).reset_index(drop=True)
 
-        # Load from S3 and save to cache
+        # Cache doesn't exist, download from S3
         df = pd.read_parquet(file_path, filesystem=fs)
-        # df = df.sort_values(["date", "symbol"]).reset_index(drop=True)
         df.to_parquet(cache_file)
-        return df
+        return df.sort_values(["date", "symbol"]).reset_index(drop=True)
     else:
-        return pd.read_parquet(file_path, filesystem=fs)
-        # return df.sort_values(["date", "symbol"]).reset_index(drop=True)
+        df = pd.read_parquet(file_path, filesystem=fs)
+        return df.sort_values(["date", "symbol"]).reset_index(drop=True)
