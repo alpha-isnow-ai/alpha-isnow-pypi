@@ -137,23 +137,37 @@ To release to PyPI:
 > Before building and uploading to PyPI, don't forget to bump the version in `setup.py` and `CHANGELOG.md`.
 
 ```bash
-# Upload to PyPI (requires PyPI credentials)
-python -m twine upload dist/*
+# Clean previous builds
+rm -rf dist/* && python -m build --clean && python -m twine upload dist/*
 
-# Or upload to TestPyPI first (recommended for first-time releases)
-python -m twine upload --repository testpypi dist/*
 ```
+
+### Release Best Practices
+
+When upgrading your library:
+
+1. **Version Management**:
+   - Always increment the version number in `setup.py` following semantic versioning (MAJOR.MINOR.PATCH)
+   - Update `CHANGELOG.md` with details of changes in the new version
+   - Consider using `0.x.y` for pre-stable releases and `1.0.0+` for stable API
+
+2. **Build Process**:
+   - Always clean previous build artifacts with `rm -rf dist/*` before building
+   - Use `python -m build` to generate both wheel and source distribution
+   - Verify the build artifacts in the `dist/` directory before uploading
+
+3. **Upload Process**:
+   - For important releases, test on TestPyPI first: `python -m twine upload --repository testpypi dist/*`
+   - Install from TestPyPI to verify: `pip install --index-url https://test.pypi.org/simple/ alpha-isnow`
+   - Only after verification, upload to PyPI: `python -m twine upload dist/*`
+   - Never reuse version numbers - PyPI permanently reserves each version name
+
+4. **Post-Release**:
+   - Verify the package can be installed: `pip install --no-cache-dir alpha-isnow==x.y.z`
+   - Tag the release in your version control system: `git tag -a vX.Y.Z -m "Version X.Y.Z"`
+   - Push tags: `git push --tags`
 
 Note: You only need to upload the latest version. PyPI will maintain the version history automatically.
-
-To upload a specific version:
-```bash
-# Upload specific version files
-python -m twine upload dist/alpha_isnow-<version>
-
-# Or upload to TestPyPI
-python -m twine upload --repository testpypi dist/alpha_isnow-<version>
-```
 
 ### PyPI Configuration
 
